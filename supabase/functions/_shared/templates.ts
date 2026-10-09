@@ -71,7 +71,7 @@ const HEADERS: Record<OwnerAlertKind, string> = {
 
 export function formatOwnerAlert(
   kind: OwnerAlertKind,
-  lead: Pick<Lead, "name" | "phone" | "score" | "status" | "qualification">,
+  lead: Pick<Lead, "name" | "phone" | "score" | "status" | "qualification"> & Partial<Pick<Lead, "priority">>,
   questions: QualificationQuestion[],
   extra: { visitAt?: Date | null; reason?: string } = {},
 ): string {
@@ -88,7 +88,7 @@ export function formatOwnerAlert(
   const lines = [
     `🔔 ${HEADERS[kind]}: ${lead.name || "Unknown"} (${lead.phone})`,
     answerLine || "No answers yet",
-    `Score: ${lead.score} | Status: ${lead.status}`,
+    `Score: ${lead.score}${lead.priority ? ` (${lead.priority})` : ""} | Status: ${lead.status}`,
     `Visit: ${visit}`,
     // Handoff alerts carry the reason in place of the note so the alert stays at 5 lines.
     kind === "handoff" ? `Reason: ${extra.reason || "-"}` : `Note: ${q.summary || "-"}`,

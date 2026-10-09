@@ -79,7 +79,7 @@ describe("scoring", () => {
       timeline_months: 2,
     }, q, realEstate.budget_ranges);
     assert.equal(r.qualified, true);
-    assert.equal(r.score, 100);
+    assert.equal(r.score, 75); // 25 budget + 10 BHK + 25 timeline + 15 visit day; booking adds the last 25
     assert.deepEqual(r.missing, []);
   });
 

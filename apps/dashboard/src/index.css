@@ -13,6 +13,14 @@
   --accent-soft: #e3f3ed;
   --danger: #b42318;
 
+  /* Lead priority badge */
+  --hot: #c2410c;
+  --hot-soft: #ffedd5;
+  --warm: #9a5b00;
+  --warm-soft: #fef3c7;
+  --cold: #1e5aa8;
+  --cold-soft: #e0ecfb;
+
   /* Chat surface inside the phone (the lead's view) */
   --chat-bg: #ece5dd;
   --bubble-in: #ffffff;
@@ -37,6 +45,13 @@
     --accent-soft: #12271f;
     --danger: #f97066;
 
+    --hot: #fb923c;
+    --hot-soft: #3a1d0e;
+    --warm: #facc15;
+    --warm-soft: #33290a;
+    --cold: #7cb2f0;
+    --cold-soft: #13233a;
+
     --chat-bg: #0b141a;
     --bubble-in: #202c33;
     --bubble-out: #005c4b;
@@ -59,6 +74,13 @@
   --accent-ink: #03140d;
   --accent-soft: #12271f;
   --danger: #f97066;
+
+  --hot: #fb923c;
+  --hot-soft: #3a1d0e;
+  --warm: #facc15;
+  --warm-soft: #33290a;
+  --cold: #7cb2f0;
+  --cold-soft: #13233a;
 
   --chat-bg: #0b141a;
   --bubble-in: #202c33;
@@ -83,6 +105,12 @@
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
+  --color-hot: var(--hot);
+  --color-hot-soft: var(--hot-soft);
+  --color-warm: var(--warm);
+  --color-warm-soft: var(--warm-soft);
+  --color-cold: var(--cold);
+  --color-cold-soft: var(--cold-soft);
   --color-chat-bg: var(--chat-bg);
   --color-bubble-in: var(--bubble-in);
   --color-bubble-out: var(--bubble-out);

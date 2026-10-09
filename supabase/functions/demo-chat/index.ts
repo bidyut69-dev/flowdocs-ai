@@ -23,6 +23,8 @@ const publicLead = (l: Lead) => ({
   name: l.name,
   status: l.status,
   score: l.score,
+  priority: l.priority,
+  priority_locked: l.priority_locked,
   ai_paused: l.ai_paused,
   qualification: l.qualification,
 });
@@ -67,6 +69,8 @@ async function resetDemoLead(db: Db, lead: Lead) {
     await db.from("leads").update({
       status: "new",
       score: 0,
+      priority: "cold",
+      priority_locked: false,
       ai_paused: false,
       qualification: {},
       unclear_count: 0,

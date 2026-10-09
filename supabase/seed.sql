@@ -121,3 +121,8 @@ insert into public.message_templates (org_id, name, language, use_case, status, 
   ('22222222-2222-4222-8222-222222222222', 'smilecare_handoff_ack', 'hi', 'handoff_ack', 'approved',
    'Main aapko abhi hamari team se connect karti hoon, thoda wait karein.'),
   ('22222222-2222-4222-8222-222222222222', 'smilecare_owner_alert', 'en', 'owner_alert', 'approved', null);
+
+-- SmileCare asks "treatment" instead of "bhk": give that answer the points (scoring_rules default is real estate).
+update public.org_config
+set scoring_rules = jsonb_set(scoring_rules, '{points,answered}', '{"treatment": 10}'::jsonb)
+where org_id = '22222222-2222-4222-8222-222222222222';

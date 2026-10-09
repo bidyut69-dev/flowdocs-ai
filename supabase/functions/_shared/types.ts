@@ -1,5 +1,6 @@
 // Row shapes for the tables Edge Functions touch. Mirrors supabase/migrations.
 
+import type { ScoringRulesConfig } from "./scoring.ts";
 import type { BookingHours } from "./slots.ts";
 
 export type LeadStatus =
@@ -11,6 +12,8 @@ export type LeadStatus =
   | "lost"
   | "opted_out"
   | "invalid_phone";
+
+export type LeadPriority = "hot" | "warm" | "cold";
 
 export type LeadSource = "meta_ads" | "website" | "manual" | "demo";
 
@@ -61,6 +64,7 @@ export interface OrgConfig {
   disclosure_text: string | null;
   project_address: string | null;
   budget_ranges: BudgetRange[];
+  scoring_rules: ScoringRulesConfig | null; // points per answer + hot/warm thresholds; null = defaults
   lead_consent_confirmed: boolean;
 }
 
@@ -75,6 +79,8 @@ export interface Lead {
   raw: Record<string, unknown>;
   status: LeadStatus;
   score: number;
+  priority: LeadPriority;
+  priority_locked: boolean; // owner set the priority by hand; rescoring leaves it alone
   ai_paused: boolean;
   qualification: Qualification;
   unclear_count: number;

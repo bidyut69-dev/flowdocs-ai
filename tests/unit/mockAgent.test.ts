@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 
 import type { ToolHandlers } from "../../supabase/functions/_shared/agent.ts";
 import { parseBudget, parseTimeline, pickSlot, runMockAgent, to24 } from "../../supabase/functions/_shared/mockAgent.ts";
-import { nextStatus, scoreLead } from "../../supabase/functions/_shared/scoring.ts";
+import { nextStatus, rescoreLead } from "../../supabase/functions/_shared/scoring.ts";
 import { computeSlots } from "../../supabase/functions/_shared/slots.ts";
 import { formatIstClock, formatIstDay, istTime, istToUtc } from "../../supabase/functions/_shared/time.ts";
 import type { MessageRow, OrgConfig, Qualification } from "../../supabase/functions/_shared/types.ts";
@@ -49,6 +49,7 @@ function harness(config: OrgConfig) {
       booked.push(slot);
       lead.status = "booked";
       lead.qualification = { ...lead.qualification, visit_slot: `${formatIstDay(slot.starts_at)}, ${formatIstClock(slot.starts_at)}` };
+      ({ score: lead.score, priority: lead.priority } = rescoreLead(lead, lead.qualification, config));
       return { result: { ok: true, date: formatIstDay(slot.starts_at), time: formatIstClock(slot.starts_at), location: config.project_address } };
     },
     async update_lead(input) {
@@ -58,9 +59,10 @@ function harness(config: OrgConfig) {
       if (typeof input.budget_min_inr === "number") q.budget_min_inr = input.budget_min_inr;
       if (typeof input.budget_max_inr === "number") q.budget_max_inr = input.budget_max_inr;
       if (typeof input.timeline_months === "number") q.timeline_months = input.timeline_months;
-      const score = scoreLead(q, config.qualification_questions, config.budget_ranges);
+      const score = rescoreLead(lead, q, config);
       lead.qualification = q;
       lead.score = score.score;
+      lead.priority = score.priority;
       lead.status = nextStatus(lead.status, score.qualified);
       return { result: { saved: true, status: lead.status, still_to_ask: score.missing } };
     },
@@ -122,6 +124,42 @@ describe("mock agent: full real-estate flow (same script as the acceptance test)
     r = await h.say("ok thanks");
     assert.match(r.reply!, /booked hai/);
     assert.equal(h.booked.length, 1, "no double booking");
+  });
+
+  it("[scoring 1] recalculates score + priority after every answer, default points (cold → warm → hot)", async () => {
+    // BOT_TESTS §0 budget range; scoring_rules null = DEFAULT_SCORING_RULES (same as the column default).
+    const h = harness({ ...realEstate, budget_ranges: [{ label: "40-60L", min: 4_000_000, max: 6_000_000 }] });
+    const state = () => [h.lead.score, h.lead.priority];
+
+    await h.say("Budget 50 lakh hai");
+    assert.deepEqual(state(), [25, "cold"], "budget in range: 25");
+    await h.say("2BHK chahiye");
+    assert.deepEqual(state(), [35, "cold"], "+ BHK: 10");
+    await h.say("2 mahine me lena hai");
+    assert.deepEqual(state(), [60, "warm"], "+ timeline within 3 months: 25, warm from 40");
+    await h.say("Kal visit kar sakta hoon");
+    assert.deepEqual(state(), [75, "hot"], "+ visit day: 15, hot from 70");
+    await h.say("Pehla wala time theek hai, book kar do");
+    assert.equal(h.lead.status, "booked");
+    assert.deepEqual(state(), [100, "hot"], "+ visit booked: 25");
+  });
+
+  it("[scoring 2] org_config.scoring_rules sets the points; a locked priority stays as the owner set it", () => {
+    const config = { ...realEstate, budget_ranges: [{ label: "40-60L", min: 4_000_000, max: 6_000_000 }] };
+    const q: Qualification = { answers: { budget: "50L", bhk: "2BHK" }, budget_min_inr: 5_000_000, budget_max_inr: 5_000_000 };
+    const pick = (r: { score: number; priority: string }) => [r.score, r.priority];
+
+    assert.deepEqual(pick(rescoreLead(makeLead(), q, config)), [35, "cold"], "defaults: 25 + 10");
+
+    // This org values BHK more and calls a lead hot from 60. Keys it leaves out keep their defaults.
+    const custom = { ...config, scoring_rules: { points: { answered: { bhk: 40 } }, priority: { hot: 60, warm: 30 } } };
+    assert.deepEqual(pick(rescoreLead(makeLead(), q, custom)), [65, "hot"], "org rules: 25 + 40, hot from 60");
+
+    // Owner pinned this lead to cold in the dashboard: the score keeps moving, the priority doesn't.
+    const locked = makeLead({ priority: "cold", priority_locked: true });
+    const more: Qualification = { ...q, answers: { ...q.answers, timeline: "1 mahina" }, timeline_months: 1 };
+    assert.deepEqual(pick(rescoreLead(locked, more, custom)), [90, "cold"]);
+    assert.equal(rescoreLead({ ...locked, priority_locked: false }, more, custom).priority, "hot");
   });
 
   it("takes several answers from one message", async () => {

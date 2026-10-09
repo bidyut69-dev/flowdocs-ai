@@ -9,7 +9,7 @@ import { runMockAgent } from "./mockAgent.ts";
 import { isOptOut } from "./optout.ts";
 import { normalizePhone } from "./phone.ts";
 import { buildLeadIntro, buildSystemPrompt, buildTurnState } from "./prompts.ts";
-import { nextStatus, scoreLead } from "./scoring.ts";
+import { nextStatus, rescoreLead, type ScoreResult, scoreLead } from "./scoring.ts";
 import { computeSlots } from "./slots.ts";
 import type { Db } from "./supabaseAdmin.ts";
 import { formatOptOutAlert, formatOwnerAlert, renderGreeting } from "./templates.ts";
@@ -233,6 +233,17 @@ function dateInWindow(ctx: Ctx, date: string): boolean {
 function makeHandlers(ctx: Ctx, state: TurnState): ToolHandlers {
   const { db, org, config, channel } = ctx;
 
+  /** Save qualification with a fresh score + priority (SYSTEM_DESIGN §4.1 scoring); logs a priority change. */
+  async function saveQualification(q: Qualification, extra: (r: ScoreResult) => Partial<Lead> = () => ({})) {
+    const before = state.lead;
+    const r = rescoreLead(before, q, config);
+    state.lead = await updateLead(ctx, before.id, { ...extra(r), qualification: q, score: r.score, priority: r.priority });
+    if (r.priority !== before.priority) {
+      await logEvent(db, org.id, before.id, "priority_changed", { from: before.priority, to: r.priority, score: r.score });
+    }
+    return r;
+  }
+
   return {
     async get_available_slots(input): Promise<ToolOutcome> {
       const date = String(input.date ?? "");
@@ -291,10 +302,9 @@ function makeHandlers(ctx: Ctx, state: TurnState): ToolHandlers {
       }
 
       const visitLabel = `${formatIstDay(slot.starts_at)}, ${formatIstClock(slot.starts_at)}`;
-      state.lead = await updateLead(ctx, state.lead.id, {
+      await saveQualification({ ...state.lead.qualification, visit_slot: visitLabel }, () => ({
         status: state.lead.status === "won" ? "won" : "booked",
-        qualification: { ...state.lead.qualification, visit_slot: visitLabel },
-      });
+      }));
       await logEvent(db, org.id, state.lead.id, "appointment_booked", { starts_at: slot.starts_at.toISOString() });
       await channel.notifyOwner(config, state.lead.id, "visit_booked",
         formatOwnerAlert("visit_booked", state.lead, config.qualification_questions, { visitAt: slot.starts_at }));
@@ -334,12 +344,11 @@ function makeHandlers(ctx: Ctx, state: TurnState): ToolHandlers {
       if (tl !== undefined) q.timeline_months = tl;
       if (typeof input.summary === "string" && input.summary.trim()) q.summary = input.summary.trim().slice(0, 200);
 
-      const score = scoreLead(q, config.qualification_questions, config.budget_ranges);
-      const status = nextStatus(state.lead.status, score.qualified);
       const before = state.lead.status;
-      state.lead = await updateLead(ctx, state.lead.id, { qualification: q, score: score.score, status, unclear_count: 0 });
+      const score = await saveQualification(q, (r) => ({ status: nextStatus(before, r.qualified), unclear_count: 0 }));
+      const status = state.lead.status;
 
-      await logEvent(db, org.id, state.lead.id, "lead_updated", { answers, score: score.score, status });
+      await logEvent(db, org.id, state.lead.id, "lead_updated", { answers, score: score.score, priority: state.lead.priority, status });
       if (status !== before) await logEvent(db, org.id, state.lead.id, "lead_status_changed", { from: before, to: status });
 
       return { result: { saved: true, status, score: score.score, still_to_ask: score.missing } };
@@ -452,7 +461,7 @@ export async function handleInbound(
       if (org.status !== "demo") throw new AgentError("AI_MODE=mock is only allowed for demo orgs", "api");
       result = await runMockAgent({ text, lead, config, history, now, handlers });
     } else {
-      const score = scoreLead(lead.qualification ?? {}, config.qualification_questions, config.budget_ranges);
+      const score = scoreLead(lead.qualification ?? {}, config.qualification_questions, config.budget_ranges, config.scoring_rules);
       const messages = toAgentMessages(lead, config, history, buildTurnState(lead, score, now));
       result = await runAgent({ system: buildSystemPrompt(config), messages, handlers });
     }

@@ -26,6 +26,7 @@ export const realEstate: OrgConfig = {
   disclosure_text: "Main {{builder_name}} ka virtual assistant hoon.",
   project_address: "Plot 7, New Town",
   budget_ranges: [{ label: "40-50L", min: 4_000_000, max: 5_000_000 }],
+  scoring_rules: null,
   lead_consent_confirmed: true,
 };
 
@@ -51,6 +52,8 @@ export const lead = (over: Partial<Lead> = {}): Lead => ({
   raw: {},
   status: "contacted",
   score: 0,
+  priority: "cold",
+  priority_locked: false,
   ai_paused: false,
   qualification: {},
   unclear_count: 0,

@@ -342,7 +342,7 @@ export async function runMockAgent(input: MockInput): Promise<AgentResult> {
   }
 
   // 5. Qualification answers (one or several in one message)
-  const score0 = scoreLead(q0, config.qualification_questions, config.budget_ranges);
+  const score0 = scoreLead(q0, config.qualification_questions, config.budget_ranges, config.scoring_rules);
   const current = score0.missing[0];
   if (!current) {
     const v = parseVisit(t, now, true);
