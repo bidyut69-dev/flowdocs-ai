@@ -10,4 +10,5 @@ supabase/.branches/
 CLAUDE.md
 SYSTEM_DESIGN.md
 DECISIONS.md
+BOT_TESTS.md
 .env.example

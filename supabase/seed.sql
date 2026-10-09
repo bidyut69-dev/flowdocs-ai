@@ -7,6 +7,9 @@ insert into public.organizations (id, name, niche, slug, status) values
 
 -- ─────────────────────────────────────────────────────────────
 -- Skyline Realty (real estate, Kolkata)
+-- This is also the BOT_TESTS.md §0 fixture: some facts are present and some are left out on purpose
+-- (no 3BHK price, no possession date, no inventory count). scripts/bot-tests.ts checks these values
+-- before running, so change both together.
 -- ─────────────────────────────────────────────────────────────
 insert into public.org_config (
   org_id, business_name, city, services, faqs, pricing_notes, booking_hours, slot_minutes,
@@ -20,16 +23,13 @@ insert into public.org_config (
     {"name": "Skyline Greens, New Town", "details": "2BHK (850-950 sq ft) and 3BHK (1200-1350 sq ft), G+14 towers, clubhouse, pool, 24x7 security"}
   ]'::jsonb,
   '[
-    {"q": "Project kahan hai?", "a": "Action Area 2, New Town, Kolkata. City Centre 2 se 5 minute."},
-    {"q": "Possession kab hai?", "a": "Tower A ka possession December 2027 planned hai."},
-    {"q": "RERA number?", "a": "WBRERA/P/NOR/2025/001234"},
-    {"q": "Parking milegi?", "a": "Har flat ke saath ek covered car parking hai."}
+    {"q": "RERA number?", "a": "WBRERA/P/DEMO/0001 (demo)"},
+    {"q": "Parking milegi?", "a": "Covered parking extra cost pe milti hai."}
   ]'::jsonb,
-  '2BHK starting 48 lakh, 3BHK starting 68 lakh (all-inclusive ex-registration). Offers, discount, EMI aur loan ki baat sirf sales team karegi.',
+  '2BHK ₹45 lakh se shuru. Final price unit aur floor pe depend karta hai, visit pe confirm hoga.',
   '{
     "mon": [["10:00", "18:00"]], "tue": [["10:00", "18:00"]], "wed": [["10:00", "18:00"]],
-    "thu": [["10:00", "18:00"]], "fri": [["10:00", "18:00"]],
-    "sat": [["10:00", "19:00"]], "sun": [["10:00", "19:00"]]
+    "thu": [["10:00", "18:00"]], "fri": [["10:00", "18:00"]], "sat": [["10:00", "18:00"]]
   }'::jsonb,
   60,
   'Warm, polite, thoda informal. Front-desk wali tameez. Hinglish chalega.',
@@ -51,11 +51,9 @@ insert into public.org_config (
 - Koi project, offer ya detail jo config me nahi hai',
   'Namaste {{name}}! {{disclosure}} Aapne {{project}} ke baare me poochha tha. Aapka budget kitna hai, bata denge to main site visit ka slot check kar deta hoon?',
   'Main {{builder_name}} ka virtual assistant hoon.',
-  'Skyline Greens Sales Office, Plot 7, Action Area 2, New Town, Kolkata 700161',
+  'Plot 12, Action Area II, New Town, Kolkata',
   '[
-    {"label": "40-50L", "min": 4000000, "max": 5000000},
-    {"label": "50-70L", "min": 5000000, "max": 7000000},
-    {"label": "70-90L", "min": 7000000, "max": 9000000}
+    {"label": "40-60L", "min": 4000000, "max": 6000000}
   ]'::jsonb,
   true
 );

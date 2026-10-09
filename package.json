@@ -15,6 +15,10 @@
     "build:site": "npm run build -w apps/site",
     "test:unit": "node --test \"tests/unit/**/*.test.ts\"",
     "test:db": "supabase test db",
-    "test:acceptance": "node tests/acceptance/phase1.mjs"
+    "test:acceptance": "node tests/acceptance/phase1.mjs",
+    "test:bot": "node scripts/bot-tests.ts"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.128.0"
   }
 }
