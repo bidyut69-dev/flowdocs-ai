@@ -9,6 +9,7 @@
   --line: #262c29;
   --accent: #34c08f;
   --accent-ink: #03140d;
+  --danger: #f97066;
 }
 
 @media (prefers-color-scheme: light) {
@@ -20,6 +21,7 @@
     --line: #e1e5e2;
     --accent: #0b7a5c;
     --accent-ink: #ffffff;
+    --danger: #b42318;
   }
 }
 
@@ -31,6 +33,7 @@
   --line: #e1e5e2;
   --accent: #0b7a5c;
   --accent-ink: #ffffff;
+  --danger: #b42318;
 }
 
 @theme inline {
@@ -42,6 +45,7 @@
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
 }
 
 html,

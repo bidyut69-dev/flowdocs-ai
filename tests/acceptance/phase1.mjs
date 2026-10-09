@@ -63,7 +63,7 @@ const questionCount = (s) => (s.match(/\?/g) || []).length;
 // ── 1. Intake: first message fast, with disclosure + STOP line ──────────────
 console.log("\n1. Lead intake");
 let t0 = Date.now();
-const intake = await demo({ action: "submit_lead", slug: SLUG, name: "Rahul Sharma", phone: randomPhone() });
+const intake = await demo({ action: "submit_lead", slug: SLUG, name: "Rahul Sharma", phone: randomPhone(), consent: true });
 const elapsed = Date.now() - t0;
 show("", intake);
 const first = intake.messages[0]?.body ?? "";
@@ -105,7 +105,7 @@ check("confirmation mentions location", /new town|action area|plot 7/i.test(conf
 
 // ── 4. Human request → handoff ──────────────────────────────────────────────
 console.log("\n4. Human handoff");
-const h = await demo({ action: "submit_lead", slug: SLUG, name: "Priya Das", phone: randomPhone() });
+const h = await demo({ action: "submit_lead", slug: SLUG, name: "Priya Das", phone: randomPhone(), consent: true });
 r = await say(h.lead.id, "Mujhe kisi insaan se baat karni hai, sales wale se baat karao");
 check("handoff outcome", r.outcome === "handoff");
 check("ai_paused set", r.lead.ai_paused === true);
@@ -115,7 +115,7 @@ check("AI stays silent while paused", r.outcome === "paused" && r.messages.lengt
 
 // ── 5. Negotiation → handoff, no invented price ────────────────────────────
 console.log("\n5. Negotiation");
-const n = await demo({ action: "submit_lead", slug: SLUG, name: "Amit Roy", phone: randomPhone() });
+const n = await demo({ action: "submit_lead", slug: SLUG, name: "Amit Roy", phone: randomPhone(), consent: true });
 r = await say(n.lead.id, "Last price kya hai 2BHK ka? Thoda discount do na");
 check("negotiation hands off", r.outcome === "handoff");
 const aiText = r.messages.filter((m) => m.sender === "ai").map((m) => m.body).join(" ");
@@ -123,7 +123,7 @@ check("no price invented", !/\d+\s*(lakh|lac|L\b|cr|crore|%|rs|₹)/i.test(aiTex
 
 // ── 6. STOP ─────────────────────────────────────────────────────────────────
 console.log("\n6. Opt-out");
-const s = await demo({ action: "submit_lead", slug: SLUG, name: "Sneha Paul", phone: randomPhone() });
+const s = await demo({ action: "submit_lead", slug: SLUG, name: "Sneha Paul", phone: randomPhone(), consent: true });
 r = await say(s.lead.id, "STOP");
 check("STOP → opted_out", r.outcome === "opted_out" && r.lead.status === "opted_out");
 check("no reply to STOP", r.messages.length === 0);

@@ -1,14 +1,11 @@
 import { ArrowRight } from "lucide-react";
+import { SiteFooter, SiteHeader } from "../components/SiteChrome";
 
-// flowdocs.co.in landing. Hero only for now; Audit.jsx (booking) and Legal.jsx come later.
+// flowdocs.co.in landing. Hero only for now.
 export default function Landing() {
   return (
     <div className="min-h-dvh">
-      <header className="mx-auto flex max-w-6xl items-center px-4 py-5 sm:px-6">
-        <a href="/" className="text-[15px] font-semibold tracking-tight">
-          FlowDocs AI
-        </a>
-      </header>
+      <SiteHeader />
 
       <main>
         <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-8 pb-16 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(0,380px)] md:gap-10 md:pt-12 lg:min-h-[calc(100dvh-76px)] lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-16 lg:pt-0 lg:pb-12">
@@ -40,6 +37,8 @@ export default function Landing() {
           </figure>
         </section>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

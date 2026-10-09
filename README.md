@@ -11,6 +11,8 @@ AI Lead Conversion System. Architecture: `CLAUDE.md`. Bot behaviour: `SYSTEM_DES
 | `supabase/functions/_shared/` | `agent.ts` (Claude loop), `mockAgent.ts` (free scripted bot), `prompts.ts`, `conversation.ts` (intake / inbound / handoff / opt-out), `channel.ts` (demo adapter), pure helpers |
 | `supabase/functions/demo-chat/` | Simulator backend (demo orgs only, rate-limited) |
 | `apps/dashboard/src/pages/demo/Simulator.jsx` | Lead form + WhatsApp-style chat + owner alerts |
+| `apps/site/` | flowdocs.co.in: Landing hero, `/audit` (Free Lead Leak Audit form), `/legal` (privacy + terms, draft) |
+| `supabase/functions/audit-request/` | Saves audit requests to `audit_requests`, emails the founder via Resend when configured |
 | `tests/unit/` | Pure logic tests (Node, no deps) |
 | `supabase/tests/database/rls.test.sql` | RLS isolation + double booking (pgTAP) |
 | `tests/acceptance/phase1.mjs` | SYSTEM_DESIGN §11 end-to-end run against the real function |
@@ -35,6 +37,10 @@ Env files are not in git. Create them yourself:
 |---|---|
 | `supabase/functions/.env` | `AI_MODE=mock` (free) or `AI_MODE=claude` + `ANTHROPIC_API_KEY=...` |
 | `apps/dashboard/.env` | `VITE_SUPABASE_URL=http://127.0.0.1:54321`, `VITE_SUPABASE_ANON_KEY=...` (from `supabase start`) |
+| `apps/site/.env` | `VITE_SUPABASE_URL=...` (only used for the audit form endpoint) |
+
+Audit emails (optional; requests are always saved first): `supabase secrets set RESEND_API_KEY=... AUDIT_NOTIFY_TO=you@example.com`.
+`RESEND_FROM` defaults to hello@flowdocs.co.in, so that domain must be verified in Resend.
 
 ## Tests
 

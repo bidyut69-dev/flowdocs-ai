@@ -2,7 +2,7 @@
 // DemoChannel instead of WhatsApp. Only works for orgs whose status is 'demo'.
 //
 // POST { action: "org", slug }                    → public demo info for the lead form
-// POST { action: "submit_lead", slug, name, phone } → creates/resets the lead, sends first reply
+// POST { action: "submit_lead", slug, name, phone, consent: true } → creates/resets the lead, sends first reply
 // POST { action: "send", lead_id, text }           → lead message in, AI reply / handoff / opt-out out
 
 import { DemoChannel, type OwnerAlert } from "../_shared/channel.ts";
@@ -103,6 +103,7 @@ async function handle(body: Record<string, unknown>): Promise<Response> {
       const name = String(body.name ?? "").trim().slice(0, 80);
       const phone = String(body.phone ?? "").trim().slice(0, 20);
       if (!name || !phone) return json({ error: "name and phone are required" }, 400);
+      if (body.consent !== true) return json({ error: "WhatsApp contact ke liye consent tick karein", field: "consent" }, 400);
 
       const recent = await countSince(db, "events", { org_id: found.org.id }, 3_600_000,
         ["type", ["lead_created", "lead_resubmitted"]]);
@@ -123,7 +124,7 @@ async function handle(body: Record<string, unknown>): Promise<Response> {
         source: "demo",
         campaign: "Demo lead form",
         project: found.config.services[0]?.name ?? null,
-        raw: { form: "demo_simulator" },
+        raw: { form: "demo_simulator", consent_at: new Date().toISOString() },
       });
       return json(payload(channel, lead, { sent, project: projectOf(lead, found.config) }));
     }

@@ -5,11 +5,17 @@ import { initials } from "../../lib/demoApi";
 export default function LeadAdForm({ org, busy, onSubmit }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [consentError, setConsentError] = useState(false);
 
   function submit(e) {
     e.preventDefault();
     if (!name.trim() || !phone.trim() || busy) return;
-    onSubmit({ name: name.trim(), phone: phone.trim() });
+    if (!consent) {
+      setConsentError(true);
+      return;
+    }
+    onSubmit({ name: name.trim(), phone: phone.trim(), consent: true });
   }
 
   return (
@@ -62,9 +68,20 @@ export default function LeadAdForm({ org, busy, onSubmit }) {
         </label>
       </div>
 
-      <p className="mt-3 text-xs leading-relaxed text-muted">
-        Submit karke aap {org?.name ?? "is business"} se WhatsApp par contact hone ke liye agree karte hain.
-      </p>
+      <label className="mt-4 flex items-start gap-3 text-sm leading-relaxed text-muted">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => {
+            setConsent(e.target.checked);
+            setConsentError(false);
+          }}
+          aria-invalid={consentError || undefined}
+          className="mt-0.5 size-4 shrink-0 accent-accent"
+        />
+        <span>{org?.name ?? "Ye business"} mujhse WhatsApp par contact kar sakta hai.</span>
+      </label>
+      {consentError && <p className="mt-1 text-sm text-danger">WhatsApp contact ke liye consent tick karein</p>}
 
       <button
         type="submit"
