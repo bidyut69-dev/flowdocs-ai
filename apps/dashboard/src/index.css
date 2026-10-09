@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --ink: #101412;
+  --muted: #59625d;
+  --line: #e1e5e2;
+  --accent: #0b7a5c;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3f3ed;
+  --danger: #b42318;
+
+  /* Chat surface inside the phone (the lead's view) */
+  --chat-bg: #ece5dd;
+  --bubble-in: #ffffff;
+  --bubble-out: #d9fdd3;
+  --chat-bar: #f0f2f5;
+  --chat-head: #0b6b52;
+  --chat-head-ink: #ffffff;
+  --chat-meta: #667781;
+  --note-bg: #fff3c4;
+  --note-ink: #54460d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0f0e;
+    --surface: #151917;
+    --ink: #edf1ee;
+    --muted: #9ba49f;
+    --line: #262c29;
+    --accent: #34c08f;
+    --accent-ink: #03140d;
+    --accent-soft: #12271f;
+    --danger: #f97066;
+
+    --chat-bg: #0b141a;
+    --bubble-in: #202c33;
+    --bubble-out: #005c4b;
+    --chat-bar: #1f2c33;
+    --chat-head: #1f2c33;
+    --chat-head-ink: #e9edef;
+    --chat-meta: #8696a0;
+    --note-bg: #2a2a1a;
+    --note-ink: #f2e7a6;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0c0f0e;
+  --surface: #151917;
+  --ink: #edf1ee;
+  --muted: #9ba49f;
+  --line: #262c29;
+  --accent: #34c08f;
+  --accent-ink: #03140d;
+  --accent-soft: #12271f;
+  --danger: #f97066;
+
+  --chat-bg: #0b141a;
+  --bubble-in: #202c33;
+  --bubble-out: #005c4b;
+  --chat-bar: #1f2c33;
+  --chat-head: #1f2c33;
+  --chat-head-ink: #e9edef;
+  --chat-meta: #8696a0;
+  --note-bg: #2a2a1a;
+  --note-ink: #f2e7a6;
+}
+
+@theme inline {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-chat-bg: var(--chat-bg);
+  --color-bubble-in: var(--bubble-in);
+  --color-bubble-out: var(--bubble-out);
+  --color-chat-bar: var(--chat-bar);
+  --color-chat-head: var(--chat-head);
+  --color-chat-head-ink: var(--chat-head-ink);
+  --color-chat-meta: var(--chat-meta);
+  --color-note-bg: var(--note-bg);
+  --color-note-ink: var(--note-ink);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Motion: transform + opacity only. Each has one job: show that something just arrived. */
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.animate-msg-in {
+  animation: msg-in 180ms ease-out both;
+}
+
+.animate-toast-in {
+  animation: toast-in 220ms ease-out both;
+}
+
+.typing-dot {
+  animation: dot 1.1s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-msg-in,
+  .animate-toast-in,
+  .typing-dot {
+    animation: none;
+  }
+}
+
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--chat-meta) 40%, transparent) transparent;
+}
