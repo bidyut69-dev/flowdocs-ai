@@ -14,13 +14,17 @@ export default function LeadAdForm({ org, busy, onSubmit }) {
 
   return (
     <form onSubmit={submit} className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+      {/* Marks the card as a demo so nobody mistakes it for a real builder's ad. */}
+      <p className="mb-4 inline-flex rounded-md border border-line bg-bg px-2 py-0.5 font-mono text-[11px] font-medium tracking-wide text-muted">
+        DEMO · sample builder
+      </p>
       <div className="flex items-center gap-3">
         <div className="grid size-10 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
           {initials(org?.name)}
         </div>
         <div className="min-w-0">
           <p className="truncate font-semibold leading-tight">{org?.name ?? "Loading..."}</p>
-          <p className="text-xs text-muted">Sponsored</p>
+          <p className="text-xs text-muted">Demo ad</p>
         </div>
       </div>
 

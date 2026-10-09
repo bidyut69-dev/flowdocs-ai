@@ -107,20 +107,23 @@ export default function Simulator() {
     }
   }
 
-  async function send(text) {
-    if (!lead) return;
-    const myRun = run.current;
-    setError("");
-    setItems((xs) => [
-      ...xs,
-      { id: nextId("me"), direction: "in", sender: "lead", body: text, created_at: new Date().toISOString() },
-    ]);
+  // Like WhatsApp, the lead can send while a reply is still coming: the bubble shows at once,
+  // and messages go to the server one at a time, in order.
+  const queue = useRef(Promise.resolve());
+  const leadRef = useRef(null);
+  leadRef.current = lead;
+
+  async function deliver(text, myRun) {
+    const current = leadRef.current;
+    if (run.current !== myRun || !current) return;
     setBusy(true);
     const t0 = Date.now();
     // Typing only shows if the business will answer; paused / opted-out leads get silence.
-    if (!lead.ai_paused && lead.status !== "opted_out") setTyping(true);
+    if (!current.ai_paused && current.status !== "opted_out") setTyping(true);
     try {
-      const res = await demoCall({ action: "send", lead_id: lead.id, text });
+      const res = await demoCall({ action: "send", lead_id: current.id, text });
+      if (run.current !== myRun) return;
+      leadRef.current = res.lead;
       await playback(res, res.messages.length ? t0 : Date.now() - MIN_TYPING_MS, myRun);
     } catch (e) {
       setTyping(false);
@@ -130,8 +133,20 @@ export default function Simulator() {
     }
   }
 
+  function send(text) {
+    if (!lead) return;
+    const myRun = run.current;
+    setError("");
+    setItems((xs) => [
+      ...xs,
+      { id: nextId("me"), direction: "in", sender: "lead", body: text, created_at: new Date().toISOString() },
+    ]);
+    queue.current = queue.current.then(() => deliver(text, myRun));
+  }
+
   function reset() {
     run.current++;
+    queue.current = Promise.resolve();
     setStarted(false);
     setLead(null);
     setItems([]);
@@ -161,8 +176,8 @@ export default function Simulator() {
         )}
       </header>
 
-      <main className="mx-auto grid max-w-6xl gap-8 px-4 pb-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-14 lg:pt-6">
-        <div className="min-w-0 space-y-6 lg:max-w-md">
+      <main className="mx-auto grid max-w-6xl gap-8 px-4 pb-10 sm:px-6 md:grid-cols-[minmax(0,1fr)_340px] md:items-start md:gap-10 md:pt-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-14">
+        <div className="min-w-0 space-y-6 md:max-w-md">
           <div>
             <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
               Form bhara. Seconds me WhatsApp reply.
@@ -186,14 +201,14 @@ export default function Simulator() {
           )}
         </div>
 
-        <div className="min-w-0 lg:sticky lg:top-6">
+        <div className="min-w-0 md:sticky md:top-6">
           <div className="mx-auto h-[640px] w-full max-w-[400px] overflow-hidden rounded-[2rem] border border-line shadow-xl sm:h-[760px] sm:rounded-[2.75rem] sm:border-[10px] sm:border-neutral-900 sm:ring-1 sm:ring-line">
             <PhoneChat
               businessName={org?.name ?? "Business"}
               subtitle="virtual assistant"
               items={items}
               typing={typing}
-              disabled={!lead || busy || optedOut}
+              disabled={!lead || optedOut}
               disabledReason={optedOut ? "Opted out" : !lead ? "Pehle form submit karein" : "Message"}
               onSend={send}
               emptyHint="Form submit karte hi yahan WhatsApp message aayega."

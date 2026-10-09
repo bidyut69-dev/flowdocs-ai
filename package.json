@@ -10,7 +10,9 @@
   },
   "scripts": {
     "dev:dashboard": "npm run dev -w apps/dashboard",
+    "dev:site": "npm run dev -w apps/site",
     "build:dashboard": "npm run build -w apps/dashboard",
+    "build:site": "npm run build -w apps/site",
     "test:unit": "node --test \"tests/unit/**/*.test.ts\"",
     "test:db": "supabase test db",
     "test:acceptance": "node tests/acceptance/phase1.mjs"

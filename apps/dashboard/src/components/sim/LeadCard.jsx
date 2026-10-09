@@ -9,7 +9,7 @@ const STATUS_STYLE = {
   invalid_phone: "bg-danger/15 text-danger",
 };
 
-const LABELS = { bhk: "BHK", visit_pref: "Visit" };
+const LABELS = { bhk: "BHK", visit_pref: "Visit day" };
 const label = (k) => LABELS[k] ?? k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, " ");
 
 export default function LeadCard({ lead }) {
