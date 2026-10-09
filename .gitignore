@@ -5,3 +5,8 @@ dist/
 *.local
 supabase/.temp/
 supabase/.branches/
+
+# Internal project docs (kept local, not published)
+CLAUDE.md
+SYSTEM_DESIGN.md
+DECISIONS.md
