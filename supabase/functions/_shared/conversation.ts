@@ -5,6 +5,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { AgentError, runAgent, type ToolHandlers, type ToolOutcome } from "./agent.ts";
 import type { Channel } from "./channel.ts";
 import { approvedTemplate, cancelPendingFollowups, DbError, logEvent, must } from "./db.ts";
+import { runMockAgent } from "./mockAgent.ts";
 import { isOptOut } from "./optout.ts";
 import { normalizePhone } from "./phone.ts";
 import { buildLeadIntro, buildSystemPrompt, buildTurnState } from "./prompts.ts";
@@ -20,6 +21,12 @@ const BOOKING_WINDOW_DAYS = 14;
 const UNCLEAR_LIMIT = 3;
 // Used only when an org has no approved handoff_ack template (logged as template_missing).
 const HANDOFF_ACK_FALLBACK = "Main aapko abhi team se connect karta hoon, thoda wait karein.";
+
+// AI_MODE=mock swaps Claude for the scripted mockAgent (no API cost). Default is claude.
+export type AiMode = "claude" | "mock";
+export function aiMode(): AiMode {
+  return Deno.env.get("AI_MODE")?.trim().toLowerCase() === "mock" ? "mock" : "claude";
+}
 
 export interface Ctx {
   db: Db;
@@ -434,12 +441,21 @@ export async function handleInbound(
     "load history",
   ) as MessageRow[]).reverse();
 
-  const score = scoreLead(lead.qualification ?? {}, config.qualification_questions, config.budget_ranges);
   const state: TurnState = { lead };
-  const messages = toAgentMessages(lead, config, history, buildTurnState(lead, score, now));
+  const handlers = makeHandlers(ctx, state);
+  const mode = aiMode();
 
   try {
-    const result = await runAgent({ system: buildSystemPrompt(config), messages, handlers: makeHandlers(ctx, state) });
+    let result;
+    if (mode === "mock") {
+      // The scripted bot must never talk to real customers.
+      if (org.status !== "demo") throw new AgentError("AI_MODE=mock is only allowed for demo orgs", "api");
+      result = await runMockAgent({ text, lead, config, history, now, handlers });
+    } else {
+      const score = scoreLead(lead.qualification ?? {}, config.qualification_questions, config.budget_ranges);
+      const messages = toAgentMessages(lead, config, history, buildTurnState(lead, score, now));
+      result = await runAgent({ system: buildSystemPrompt(config), messages, handlers });
+    }
 
     if (result.terminal === "opt_out") return { outcome: "opted_out", lead: await optOut(ctx, state.lead, "ai") };
     if (result.terminal === "handoff") {
@@ -448,7 +464,7 @@ export async function handleInbound(
     }
 
     await channel.send(state.lead, { body: result.reply!, sender: "ai" });
-    await logEvent(db, org.id, lead.id, "ai_reply", { tools: result.toolCalls.map((t) => t.name) });
+    await logEvent(db, org.id, lead.id, "ai_reply", { mode, tools: result.toolCalls.map((t) => t.name) });
     return { outcome: "replied", lead: state.lead };
   } catch (err) {
     if (!(err instanceof AgentError)) throw err;

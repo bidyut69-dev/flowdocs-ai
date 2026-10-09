@@ -10,3 +10,4 @@ supabase/.branches/
 CLAUDE.md
 SYSTEM_DESIGN.md
 DECISIONS.md
+.env.example
