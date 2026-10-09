@@ -39,6 +39,8 @@ Env files are not in git. Create them yourself:
 | `apps/dashboard/.env` | `VITE_SUPABASE_URL=http://127.0.0.1:54321`, `VITE_SUPABASE_ANON_KEY=...` (from `supabase start`) |
 | `apps/site/.env` | `VITE_SUPABASE_URL=...` (only used for the audit form endpoint) |
 
+Cloud: also set `VITE_SUPABASE_FUNCTIONS_REGION` (both apps) to the database's region, e.g. `ap-northeast-1`. Functions then run next to the database: about 1.3s instead of 3.7s for a new demo lead.
+
 Audit emails (optional; requests are always saved first): `supabase secrets set RESEND_API_KEY=... AUDIT_NOTIFY_TO=you@example.com`.
 `RESEND_FROM` defaults to hello@flowdocs.co.in, so that domain must be verified in Resend.
 

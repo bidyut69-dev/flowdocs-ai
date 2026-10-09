@@ -15,6 +15,8 @@ const NICHES = [
 const LEAD_BUCKETS = ["100 se kam", "100-300", "300-1000", "1000 se zyada"];
 
 const ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/audit-request`;
+// Run the function next to the database (see apps/dashboard/src/lib/demoApi.js).
+const REGION = import.meta.env.VITE_SUPABASE_FUNCTIONS_REGION;
 
 function pageSource() {
   const params = new URLSearchParams(window.location.search);
@@ -73,7 +75,7 @@ export default function Audit() {
     try {
       const res = await fetch(ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(REGION ? { "x-region": REGION } : {}) },
         body: JSON.stringify({ ...form, source: pageSource() }),
       });
       const data = await res.json().catch(() => ({}));

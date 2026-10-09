@@ -28,7 +28,12 @@ function check(name, pass, detail = "") {
 async function demo(body) {
   const res = await fetch(`${URL_}/functions/v1/demo-chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${ANON}`, apikey: ANON },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ANON}`,
+      apikey: ANON,
+      ...(process.env.SUPABASE_FUNCTIONS_REGION ? { "x-region": process.env.SUPABASE_FUNCTIONS_REGION } : {}),
+    },
     body: JSON.stringify(body),
   });
   const json = await res.json();
